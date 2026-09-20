@@ -56,6 +56,10 @@ export default function RootLayout() {
         name="(tabs)"
         options={{ headerShown: false }}
       />
+      <Stack.Screen
+        name="mark-lab"
+        options={{ headerShown: false }}
+      />
     </Stack>
   );
 }
