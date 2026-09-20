@@ -333,7 +333,7 @@ const styles = StyleSheet.create({
   },
   stateGrid: {
     marginTop: 24,
-    gap: 24,
+    gap: 18,
   },
   stateItem: {
     flexDirection: 'row',
@@ -350,19 +350,8 @@ const styles = StyleSheet.create({
     borderColor: colors.concrete,
   },
   stateName: {
-    marginBottom: 3,
-  },
-  stateItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 16,
-  },
-  stateGrid: {
-    marginTop: 24,
-    gap: 18,
-  },
-  stateName: {
     minWidth: 68,
+    marginBottom: 3,
   },
   section: {
     marginTop: 50,
