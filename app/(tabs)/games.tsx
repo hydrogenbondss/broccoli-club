@@ -1,12 +1,11 @@
 import { useState } from 'react';
-import { Image, ScrollView, StyleSheet, View } from 'react-native';
+import { ScrollView, StyleSheet, View } from 'react-native';
 
 import { MotionPressable } from '@/components/MotionPressable';
 import { Text } from '@/components/Text';
 import { colors, spacing } from '@/theme';
 
 type Filter = 'upcoming' | 'past';
-const heroImage = require('../../2491b7e0ee7d0396d1645c54599d291e.jpg');
 
 function Arrow() {
   return <Text style={styles.arrow}>↗</Text>;
@@ -14,6 +13,54 @@ function Arrow() {
 
 function Marker({ active = false }: { active?: boolean }) {
   return <View style={[styles.marker, active && styles.markerActive]} />;
+}
+
+function CourtGraphic() {
+  return (
+    <View style={styles.court}>
+      <View style={styles.courtOuter} />
+      <View style={styles.courtNet} />
+      <View style={[styles.courtLine, styles.courtLineTop]} />
+      <View style={[styles.courtLine, styles.courtLineBottom]} />
+      <View style={[styles.courtLine, styles.courtLineLeft]} />
+      <View style={[styles.courtLine, styles.courtLineRight]} />
+      <View style={styles.courtDot} />
+    </View>
+  );
+}
+
+function HeroGame() {
+  return (
+    <MotionPressable haptic="medium" onPress={() => {}} style={({ pressed }) => [styles.hero, pressed && styles.pressed]}>
+      <View style={styles.heroHead}>
+        <View style={styles.heroDate}>
+          <Text variant="meta" muted>SEP</Text>
+          <Text style={styles.heroDay}>20</Text>
+          <Text variant="meta" muted>SUN</Text>
+        </View>
+        <View style={styles.heroMeta}>
+          <View style={styles.liveLine}><Marker active /><Text variant="meta" style={styles.signalText}>NEXT GAME</Text></View>
+          <Text variant="meta" muted>04—06 PM</Text>
+        </View>
+      </View>
+
+      <CourtGraphic />
+
+      <View style={styles.heroCopy}>
+        <View style={styles.heroVenue}>
+          <Text variant="headline" style={styles.heroPlace}>VICTORIA PARK</Text>
+          <Text variant="body" muted style={styles.heroDetail}>Court 03 · Intermediate doubles</Text>
+        </View>
+        <Arrow />
+      </View>
+
+      <View style={styles.heroFooter}>
+        <View style={styles.heroStat}><Text variant="meta" muted>PLAYERS</Text><Text variant="label">03 / 04</Text></View>
+        <View style={styles.heroStat}><Text variant="meta" muted>ENTRY</Text><Text variant="label">HK$25</Text></View>
+        <View style={styles.inButton}><Text variant="label" style={styles.inButtonText}>YOU'RE IN</Text></View>
+      </View>
+    </MotionPressable>
+  );
 }
 
 function GameRow({ index, date, place, detail, players, status, price, past = false }: {
@@ -64,29 +111,12 @@ export default function GamesScreen() {
           <Text variant="meta" muted>02</Text>
         </View>
 
-        <Text variant="display" style={styles.pageTitle}>GAMES</Text>
+        <View style={styles.titleRow}>
+          <Text variant="display" style={styles.pageTitle}>GAMES</Text>
+          <Text variant="meta" style={styles.titleCount}>03 LIVE</Text>
+        </View>
 
-        <MotionPressable haptic="medium" onPress={() => {}} style={({ pressed }) => [styles.hero, pressed && styles.pressed]}>
-          <Image source={heroImage} style={styles.heroImage} resizeMode="cover" />
-          <View style={styles.heroShade} />
-          <View style={styles.heroTop}>
-            <View style={styles.heroTag}><Marker active /><Text variant="meta" style={styles.lightText}>NEXT GAME</Text></View>
-            <Text variant="meta" style={styles.lightMuted}>SUN · 20 SEP</Text>
-          </View>
-          <View style={styles.heroBottom}>
-            <View>
-              <Text variant="meta" style={styles.lightMuted}>4—6 PM</Text>
-              <Text variant="headline" style={styles.heroPlace}>VICTORIA PARK</Text>
-              <Text variant="body" style={styles.heroDetail}>Court 03 · Intermediate doubles</Text>
-            </View>
-            <Arrow />
-          </View>
-          <View style={styles.heroFooter}>
-            <View><Text variant="meta" style={styles.lightMuted}>PLAYERS</Text><Text variant="label" style={styles.lightText}>03 / 04</Text></View>
-            <View><Text variant="meta" style={styles.lightMuted}>ENTRY</Text><Text variant="label" style={styles.lightText}>HK$25</Text></View>
-            <View style={styles.inButton}><Text variant="label" style={styles.inButtonText}>YOU'RE IN</Text></View>
-          </View>
-        </MotionPressable>
+        <HeroGame />
 
         <View style={styles.filters}>
           <FilterButton label="UPCOMING" active={filter === 'upcoming'} onPress={() => setFilter('upcoming')} />
@@ -127,20 +157,33 @@ const styles = StyleSheet.create({
   content: { paddingHorizontal: spacing.page, paddingTop: spacing.lg, paddingBottom: 110 },
   header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' },
   headerSub: { marginTop: 5 },
-  pageTitle: { fontSize: 62, lineHeight: 58, marginTop: 24, marginBottom: 18 },
-  hero: { height: 430, backgroundColor: colors.ink, overflow: 'hidden' },
-  heroImage: { ...StyleSheet.absoluteFillObject },
-  heroShade: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(0,0,0,0.42)' },
-  heroTop: { position: 'absolute', top: 16, left: 16, right: 16, flexDirection: 'row', justifyContent: 'space-between' },
-  heroTag: { flexDirection: 'row', alignItems: 'center', gap: 7 },
+  titleRow: { marginTop: 22, marginBottom: 18, flexDirection: 'row', alignItems: 'flex-end', justifyContent: 'space-between' },
+  pageTitle: { fontSize: 62, lineHeight: 58 },
+  titleCount: { color: colors.signal, marginBottom: 5 },
+  hero: { minHeight: 430, backgroundColor: colors.ink, padding: 16, overflow: 'hidden' },
+  heroHead: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' },
+  heroDate: { flexDirection: 'row', alignItems: 'baseline', gap: 7 },
+  heroDay: { color: colors.bone, fontSize: 72, lineHeight: 68, fontWeight: '800', letterSpacing: -4 },
+  heroMeta: { alignItems: 'flex-end', gap: 7, paddingTop: 3 },
+  liveLine: { flexDirection: 'row', alignItems: 'center', gap: 7 },
+  signalText: { color: colors.signal },
   marker: { width: 6, height: 6, borderRadius: 3, backgroundColor: colors.muted },
   markerActive: { backgroundColor: colors.signal },
-  lightText: { color: colors.bone },
-  lightMuted: { color: '#C0C3BB' },
-  heroBottom: { position: 'absolute', left: 16, right: 16, bottom: 74, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-end' },
-  heroPlace: { color: colors.bone, marginTop: 3 },
-  heroDetail: { color: '#D0D2CC', marginTop: 2 },
-  heroFooter: { position: 'absolute', left: 16, right: 16, bottom: 0, minHeight: 58, borderTopWidth: 1, borderTopColor: 'rgba(255,255,255,0.22)', flexDirection: 'row', alignItems: 'center', gap: 24 },
+  court: { height: 170, marginTop: 8, position: 'relative', borderWidth: 1, borderColor: 'rgba(240,242,236,0.48)', backgroundColor: 'rgba(240,242,236,0.035)' },
+  courtOuter: { position: 'absolute', left: 13, right: 13, top: 13, bottom: 13, borderWidth: 1, borderColor: 'rgba(240,242,236,0.72)' },
+  courtNet: { position: 'absolute', top: 13, bottom: 13, left: '50%', width: 1, backgroundColor: 'rgba(240,242,236,0.72)' },
+  courtLine: { position: 'absolute', backgroundColor: 'rgba(240,242,236,0.5)' },
+  courtLineTop: { left: '25%', right: '25%', top: '50%', height: 1 },
+  courtLineBottom: { left: '25%', right: '25%', bottom: '50%', height: 1 },
+  courtLineLeft: { top: '30%', bottom: '30%', left: '25%', width: 1 },
+  courtLineRight: { top: '30%', bottom: '30%', right: '25%', width: 1 },
+  courtDot: { position: 'absolute', width: 11, height: 11, borderRadius: 6, backgroundColor: colors.signal, left: '50%', top: '50%', marginLeft: -5.5, marginTop: -5.5 },
+  heroCopy: { marginTop: 15, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-end' },
+  heroVenue: { flex: 1, paddingRight: 12 },
+  heroPlace: { color: colors.bone },
+  heroDetail: { color: '#B9BCB4', marginTop: 3 },
+  heroFooter: { minHeight: 58, marginTop: 16, paddingTop: 12, borderTopWidth: 1, borderTopColor: 'rgba(240,242,236,0.24)', flexDirection: 'row', alignItems: 'center', gap: 23 },
+  heroStat: { gap: 3 },
   inButton: { marginLeft: 'auto', minHeight: 38, paddingHorizontal: 13, backgroundColor: colors.signal, justifyContent: 'center' },
   inButtonText: { color: colors.bone },
   arrow: { fontSize: 20, lineHeight: 20, color: colors.ink },
