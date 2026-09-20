@@ -32,6 +32,8 @@ function CourtGraphic() {
   const ball = useSharedValue(0);
 
   useEffect(() => {
+    // Reanimated SharedValues are intentionally mutable.
+    // eslint-disable-next-line react-hooks/immutability
     ball.value = withRepeat(
       withSequence(
         withTiming(1, {
