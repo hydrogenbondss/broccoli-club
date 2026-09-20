@@ -1,39 +1,19 @@
-import { FlatList, StyleSheet, View } from 'react-native';
-import { MotionPressable } from '@/components/MotionPressable';
-import { colors, spacing } from '@/theme';
-import { Text } from '@/components/Text';
+import { ScrollView, StyleSheet, View } from 'react-native';
 
-function Avatar({
-  initials,
-  tone = 'dark',
-  size = 48,
-}: {
-  initials: string;
-  tone?: 'dark' | 'green' | 'light';
-  size?: number;
-}) {
+import { MotionPressable } from '@/components/MotionPressable';
+import { Text } from '@/components/Text';
+import { colors, spacing } from '@/theme';
+
+function Avatar({ initials, tone = 'light', size = 42 }: { initials: string; tone?: 'dark' | 'green' | 'light'; size?: number }) {
   return (
-    <View
-      style={[
-        styles.avatar,
-        tone === 'dark' && styles.avatarDark,
-        tone === 'green' && styles.avatarGreen,
-        tone === 'light' && styles.avatarLight,
-        { width: size, height: size, borderRadius: size / 2 },
-      ]}
-    >
-      <Text
-        variant="label"
-        style={
-          tone === 'dark'
-            ? styles.avatarDarkText
-            : tone === 'green'
-              ? styles.avatarGreenText
-              : styles.avatarLightText
-        }
-      >
-        {initials}
-      </Text>
+    <View style={[
+      styles.avatar,
+      tone === 'dark' && styles.avatarDark,
+      tone === 'green' && styles.avatarGreen,
+      tone === 'light' && styles.avatarLight,
+      { width: size, height: size, borderRadius: size / 2 },
+    ]}>
+      <Text variant="label" style={tone === 'light' ? styles.avatarLightText : styles.avatarDarkText}>{initials}</Text>
     </View>
   );
 }
@@ -42,633 +22,230 @@ function Arrow() {
   return <Text style={styles.arrow}>↗</Text>;
 }
 
-function GameRow({
-  place,
-  time,
-  details,
-  players,
-}: {
-  place: string;
-  time: string;
-  details: string;
-  players: string;
-}) {
+function CourtMark() {
   return (
-    <MotionPressable
-      onPress={() => {}}
-      style={({ pressed }) => [
-        styles.gameRow,
-        pressed && styles.pressed,
-      ]}
-    >
-      <View style={styles.gameRowMain}>
-        <Text variant="title">{place}</Text>
+    <View pointerEvents="none" style={styles.courtMark}>
+      <View style={styles.courtFrame} />
+      <View style={styles.courtNet} />
+      <View style={styles.courtCentre} />
+      <View style={styles.courtDot} />
+      <View style={styles.courtSlash} />
+    </View>
+  );
+}
 
-        <Text variant="body" muted>
-          {time} · {details}
-        </Text>
+function GameCard() {
+  return (
+    <MotionPressable onPress={() => {}} haptic="medium" style={({ pressed }) => [styles.gameCard, pressed && styles.pressed]}>
+      <View style={styles.gameCardTop}>
+        <View style={styles.live}>
+          <View style={styles.liveDot} />
+          <Text variant="meta" style={styles.greenText}>YOU’RE IN</Text>
+        </View>
+        <Text variant="meta" style={styles.darkMuted}>01 / 03</Text>
       </View>
 
-      <View style={styles.gameRowSide}>
-        <Text variant="meta" style={styles.green}>
-          {players}
-        </Text>
+      <View style={styles.gameVisual}>
+        <CourtMark />
+        <View style={styles.timeBlock}>
+          <Text variant="meta" style={styles.darkMuted}>TODAY · SUN 20 SEP</Text>
+          <Text style={styles.time}>4—6</Text>
+          <Text variant="label" style={styles.pm}>PM</Text>
+        </View>
+      </View>
+
+      <View style={styles.gameInfo}>
+        <View style={styles.gameCopy}>
+          <Text variant="headline" style={styles.lightHeading}>VICTORIA PARK</Text>
+          <Text variant="body" style={styles.darkBody}>Court 03 · Intermediate doubles</Text>
+        </View>
+        <View style={styles.peopleStack}>
+          <Avatar initials="J" tone="light" size={34} />
+          <View style={styles.stackOverlap}><Avatar initials="A" tone="green" size={34} /></View>
+          <View style={styles.stackOverlap}><Avatar initials="M" tone="light" size={34} /></View>
+          <View style={styles.stackOverlap}><Avatar initials="+" tone="light" size={34} /></View>
+        </View>
+      </View>
+
+      <View style={styles.gameBottom}>
+        <Text variant="meta" style={styles.darkMuted}>03 / 04 PLAYERS</Text>
+        <Text variant="label" style={styles.greenText}>VIEW GAME <Text style={styles.darkArrow}>↗</Text></Text>
+      </View>
+    </MotionPressable>
+  );
+}
+
+function MatchRow({ time, place, detail, players }: { time: string; place: string; detail: string; players: string }) {
+  return (
+    <MotionPressable onPress={() => {}} style={({ pressed }) => [styles.matchRow, pressed && styles.pressed]}>
+      <View style={styles.matchTime}><Text variant="label">{time}</Text><Text variant="meta" muted>TODAY</Text></View>
+      <View style={styles.matchCopy}>
+        <Text variant="title">{place}</Text>
+        <Text variant="body" muted>{detail}</Text>
+      </View>
+      <View style={styles.matchRight}>
+        <Text variant="meta" style={styles.greenText}>{players}</Text>
         <Arrow />
       </View>
     </MotionPressable>
   );
 }
 
-function ActionLink({
-  title,
-  subtitle,
-}: {
-  title: string;
-  subtitle: string;
-}) {
+function Person({ initials, name, games, tone }: { initials: string; name: string; games: string; tone: 'dark' | 'green' | 'light' }) {
   return (
-    <MotionPressable
-      onPress={() => {}}
-      style={({ pressed }) => [
-        styles.actionLink,
-        pressed && styles.pressed,
-      ]}
-    >
-      <View>
-        <Text variant="title">{title}</Text>
-        <Text variant="body" muted>
-          {subtitle}
-        </Text>
-      </View>
-
-      <Arrow />
-    </MotionPressable>
+    <View style={styles.person}>
+      <Avatar initials={initials} tone={tone} size={54} />
+      <Text variant="title" style={styles.personName}>{name}</Text>
+      <Text variant="meta" muted>{games}</Text>
+    </View>
   );
 }
 
 export default function PlayScreen() {
-  const listData = ['content'];
-
   return (
     <View style={styles.screen}>
-      <FlatList
-        data={listData}
-        keyExtractor={(item) => item}
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={styles.content}
-        style={styles.list}
-        renderItem={() => null}
-        ListHeaderComponent={
+      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.content}>
+        <View style={styles.header}>
           <View>
-            <View style={styles.header}>
-              <View>
-                <Text variant="label">Broccoli Club</Text>
-                <Text variant="meta" muted style={styles.headerMeta}>
-                  Hong Kong
-                </Text>
-              </View>
-
-              <Avatar initials="J" tone="green" size={38} />
-            </View>
-
-            <View style={styles.greeting}>
-              <Text variant="body" muted>
-                Saturday, 20 September
-              </Text>
-
-              <Text variant="headline" style={styles.greetingTitle}>
-                Good afternoon, Jeffrey.
-              </Text>
-
-              <Text variant="body" muted style={styles.greetingCopy}>
-                Ready to play?
-              </Text>
-            </View>
-
-            <View style={styles.feature}>
-              <View style={styles.featureTop}>
-                <Text variant="meta">YOUR NEXT GAME</Text>
-
-                <View style={styles.inPill}>
-                  <View style={styles.inDot} />
-                  <Text variant="meta" style={styles.inText}>
-                    YOU’RE IN
-                  </Text>
-                </View>
-              </View>
-
-              <View style={styles.featureBody}>
-                <View style={styles.featureTime}>
-                  <Text variant="display">4–6</Text>
-                  <Text variant="body" muted style={styles.featurePm}>
-                    pm
-                  </Text>
-                </View>
-
-                <View style={styles.avatarCluster}>
-                  <View style={styles.clusterOne}>
-                    <Avatar initials="J" tone="dark" size={48} />
-                  </View>
-                  <View style={styles.clusterTwo}>
-                    <Avatar initials="A" tone="green" size={48} />
-                  </View>
-                  <View style={styles.clusterThree}>
-                    <Avatar initials="M" tone="light" size={48} />
-                  </View>
-                  <View style={styles.clusterFour}>
-                    <Avatar initials="+" tone="light" size={48} />
-                  </View>
-                </View>
-              </View>
-
-              <View style={styles.featureInfo}>
-                <View>
-                  <Text variant="title">Victoria Park</Text>
-                  <Text variant="body" muted>
-                    Court 03 · Intermediate doubles
-                  </Text>
-                </View>
-
-                <Text variant="label" style={styles.price}>
-                  HK$30
-                </Text>
-              </View>
-
-              <MotionPressable
-                onPress={() => {}}
-                style={({ pressed }) => [
-                  styles.featureAction,
-                  pressed && styles.pressed,
-                ]}
-              >
-                <Text variant="label">View game</Text>
-                <Arrow />
-              </MotionPressable>
-            </View>
-
-            <View style={styles.section}>
-              <View style={styles.sectionHeading}>
-                <Text variant="headline" style={styles.sectionTitle}>
-                  Around Broccoli
-                </Text>
-
-                <Text variant="meta" muted>
-                  This weekend
-                </Text>
-              </View>
-
-              <View style={styles.rows}>
-                <GameRow
-                  place="Victoria Park"
-                  time="Sat · 5–7 pm"
-                  details="Intermediate doubles"
-                  players="3 / 4"
-                />
-
-                <GameRow
-                  place="Kowloon Cricket Club"
-                  time="Sun · 10–12"
-                  details="Beginner / intermediate"
-                  players="2 / 4"
-                />
-
-                <GameRow
-                  place="Happy Valley"
-                  time="Sun · 4–6 pm"
-                  details="Intermediate singles"
-                  players="1 / 2"
-                />
-              </View>
-            </View>
-
-            <View style={styles.peopleSection}>
-              <View style={styles.sectionHeading}>
-                <Text variant="headline" style={styles.sectionTitle}>
-                  Your people
-                </Text>
-
-                <Text variant="meta" muted>
-                  Played together
-                </Text>
-              </View>
-
-              <View style={styles.peopleRow}>
-                <View style={styles.person}>
-                  <Avatar initials="A" tone="green" size={58} />
-                  <Text variant="title" style={styles.personName}>
-                    Alex
-                  </Text>
-                  <Text variant="meta" muted>
-                    6 games
-                  </Text>
-                </View>
-
-                <View style={styles.person}>
-                  <Avatar initials="M" tone="dark" size={58} />
-                  <Text variant="title" style={styles.personName}>
-                    Maya
-                  </Text>
-                  <Text variant="meta" muted>
-                    4 games
-                  </Text>
-                </View>
-
-                <View style={styles.person}>
-                  <Avatar initials="D" tone="light" size={58} />
-                  <Text variant="title" style={styles.personName}>
-                    Daniel
-                  </Text>
-                  <Text variant="meta" muted>
-                    3 games
-                  </Text>
-                </View>
-
-                <View style={styles.person}>
-                  <Avatar initials="+" tone="light" size={58} />
-                  <Text variant="title" style={styles.personName}>
-                    More
-                  </Text>
-                  <Text variant="meta" muted>
-                    People
-                  </Text>
-                </View>
-              </View>
-
-              <MotionPressable
-                onPress={() => {}}
-                style={({ pressed }) => [
-                  styles.playAgain,
-                  pressed && styles.pressed,
-                ]}
-              >
-                <Text variant="label" style={styles.green}>
-                  Play again
-                </Text>
-                <Arrow />
-              </MotionPressable>
-            </View>
-
-            <View style={styles.requestSection}>
-              <View style={styles.sectionHeading}>
-                <Text variant="headline" style={styles.sectionTitle}>
-                  Looking to play?
-                </Text>
-
-                <View style={styles.activeMark} />
-              </View>
-
-              <View style={styles.request}>
-                <Text variant="title">Saturday · 4–6 pm</Text>
-
-                <Text variant="body" muted style={styles.requestCopy}>
-                  Hong Kong Island · Intermediate doubles
-                </Text>
-
-                <View style={styles.requestBottom}>
-                  <Text variant="meta" muted>
-                    ACTIVE
-                  </Text>
-
-                  <MotionPressable onPress={() => {}}>
-                    <Text variant="label" style={styles.green}>
-                      Edit →
-                    </Text>
-                  </MotionPressable>
-                </View>
-              </View>
-            </View>
-
-            <View style={styles.actions}>
-              <ActionLink
-                title="Find a game"
-                subtitle="See who’s playing when you want to play."
-              />
-
-              <ActionLink
-                title="Need players"
-                subtitle="Have a court? Fill the empty spots."
-              />
-            </View>
-
-            <View style={styles.footer}>
-              <Text variant="body" muted>
-                Never just a side.
-              </Text>
-            </View>
+            <Text variant="label">BROCCOLI CLUB</Text>
+            <Text variant="meta" muted style={styles.headerMeta}>HONG KONG · SATURDAY</Text>
           </View>
-        }
-      />
+          <Avatar initials="J" tone="green" size={38} />
+        </View>
+
+        <View style={styles.intro}>
+          <Text variant="meta" muted>YOUR CLUB, TODAY</Text>
+          <Text variant="display" style={styles.introTitle}>PLAY<br />SOMETHING.</Text>
+        </View>
+
+        <GameCard />
+
+        <View style={styles.pulse}>
+          <View style={styles.pulseItem}>
+            <Text style={styles.pulseNumber}>03</Text>
+            <Text variant="meta" muted>PLAYERS LOOKING</Text>
+          </View>
+          <View style={styles.pulseRule} />
+          <View style={styles.pulseItem}>
+            <Text style={styles.pulseNumber}>02</Text>
+            <Text variant="meta" muted>GAMES OPEN</Text>
+          </View>
+          <View style={styles.pulseRule} />
+          <View style={styles.pulseItem}>
+            <Text style={styles.pulseNumber}>01</Text>
+            <Text variant="meta" muted>TONIGHT</Text>
+          </View>
+        </View>
+
+        <View style={styles.section}>
+          <View style={styles.sectionHead}>
+            <View>
+              <Text variant="meta" muted>THE CLUB</Text>
+              <Text variant="headline" style={styles.sectionTitle}>Open games</Text>
+            </View>
+            <Text variant="meta" muted>THIS WEEKEND</Text>
+          </View>
+
+          <MatchRow time="10—12" place="KOWLOON CRICKET CLUB" detail="Court 02 · Beginner / intermediate" players="02 / 04" />
+          <MatchRow time="4—6" place="HAPPY VALLEY" detail="Court 01 · Intermediate singles" players="01 / 02" />
+
+          <MotionPressable onPress={() => {}} style={({ pressed }) => [styles.allGames, pressed && styles.pressed]}>
+            <Text variant="label">SEE ALL GAMES</Text>
+            <Arrow />
+          </MotionPressable>
+        </View>
+
+        <View style={styles.peopleSection}>
+          <View style={styles.sectionHead}>
+            <View>
+              <Text variant="meta" muted>THE PEOPLE</Text>
+              <Text variant="headline" style={styles.sectionTitle}>Your people</Text>
+            </View>
+            <Text variant="meta" muted>PLAYED TOGETHER</Text>
+          </View>
+
+          <View style={styles.peopleRow}>
+            <Person initials="A" name="Alex" games="6 games" tone="green" />
+            <Person initials="M" name="Maya" games="4 games" tone="dark" />
+            <Person initials="D" name="Daniel" games="3 games" tone="light" />
+            <Person initials="+" name="More" games="People" tone="light" />
+          </View>
+        </View>
+
+        <MotionPressable onPress={() => {}} style={({ pressed }) => [styles.needPlayers, pressed && styles.pressed]}>
+          <View>
+            <Text variant="meta" muted>HAVE A COURT?</Text>
+            <Text variant="headline" style={styles.needTitle}>Bring the club in.</Text>
+            <Text variant="body" muted style={styles.needCopy}>Open a game and fill the empty spots.</Text>
+          </View>
+          <Arrow />
+        </MotionPressable>
+
+        <View style={styles.footer}>
+          <Text variant="body" muted>Never just a side.</Text>
+        </View>
+      </ScrollView>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  screen: {
-    flex: 1,
-    backgroundColor: colors.bone,
-  },
-
-  list: {
-    flex: 1,
-  },
-
-  content: {
-    flexGrow: 1,
-    paddingHorizontal: spacing.page,
-    paddingTop: spacing.lg,
-    paddingBottom: 100,
-  },
-
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  },
-
-  headerMeta: {
-    marginTop: 2,
-  },
-
-  avatar: {
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-
-  avatarDark: {
-    backgroundColor: colors.ink,
-  },
-
-  avatarGreen: {
-    backgroundColor: colors.broccoli,
-  },
-
-  avatarLight: {
-    backgroundColor: colors.white,
-    borderWidth: 1,
-    borderColor: colors.concrete,
-  },
-
-  avatarDarkText: {
-    color: colors.bone,
-  },
-
-  avatarGreenText: {
-    color: colors.bone,
-  },
-
-  avatarLightText: {
-    color: colors.ink,
-  },
-
-  greeting: {
-    marginTop: 38,
-  },
-
-  greetingTitle: {
-    marginTop: 7,
-  },
-
-  greetingCopy: {
-    marginTop: 3,
-  },
-
-  feature: {
-    marginTop: 28,
-    paddingTop: 17,
-    borderTopWidth: 2,
-    borderTopColor: colors.ink,
-  },
-
-  featureTop: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  },
-
-  inPill: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 5,
-  },
-
-  inDot: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
-    backgroundColor: colors.broccoli,
-  },
-
-  inText: {
-    color: colors.broccoli,
-  },
-
-  featureBody: {
-    minHeight: 150,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  },
-
-  featureTime: {
-    flexDirection: 'row',
-    alignItems: 'flex-end',
-  },
-
-  featurePm: {
-    marginBottom: 5,
-    marginLeft: 5,
-  },
-
-  avatarCluster: {
-    width: 135,
-    height: 105,
-    position: 'relative',
-  },
-
-  clusterOne: {
-    position: 'absolute',
-    left: 4,
-    top: 15,
-    zIndex: 4,
-  },
-
-  clusterTwo: {
-    position: 'absolute',
-    left: 36,
-    top: 0,
-    zIndex: 3,
-  },
-
-  clusterThree: {
-    position: 'absolute',
-    left: 67,
-    top: 19,
-    zIndex: 2,
-  },
-
-  clusterFour: {
-    position: 'absolute',
-    left: 39,
-    top: 50,
-    zIndex: 1,
-  },
-
-  featureInfo: {
-    flexDirection: 'row',
-    alignItems: 'flex-end',
-    justifyContent: 'space-between',
-    paddingTop: 13,
-    borderTopWidth: 1,
-    borderTopColor: colors.concrete,
-  },
-
-  price: {
-    color: colors.broccoli,
-  },
-
-  featureAction: {
-    minHeight: 46,
-    marginTop: 15,
-    paddingHorizontal: 16,
-    backgroundColor: colors.broccoli,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  },
-
-  arrow: {
-    fontSize: 20,
-    lineHeight: 22,
-    color: colors.ink,
-  },
-
-  section: {
-    marginTop: 46,
-  },
-
-  sectionHeading: {
-    flexDirection: 'row',
-    alignItems: 'flex-end',
-    justifyContent: 'space-between',
-    paddingBottom: 9,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.concrete,
-  },
-
-  sectionTitle: {
-    fontSize: 27,
-    lineHeight: 29,
-  },
-
-  rows: {
-    marginTop: 2,
-  },
-
-  gameRow: {
-    minHeight: 76,
-    paddingVertical: 13,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.concrete,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  },
-
-  gameRowMain: {
-    flex: 1,
-    paddingRight: 16,
-  },
-
-  gameRowSide: {
-    alignItems: 'flex-end',
-    gap: 5,
-  },
-
-  green: {
-    color: colors.broccoli,
-  },
-
-  peopleSection: {
-    marginTop: 46,
-  },
-
-  peopleRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    paddingTop: 20,
-  },
-
-  person: {
-    alignItems: 'center',
-    width: '23%',
-  },
-
-  personName: {
-    marginTop: 7,
-    fontSize: 13,
-  },
-
-  playAgain: {
-    minHeight: 42,
-    marginTop: 17,
-    borderTopWidth: 1,
-    borderBottomWidth: 1,
-    borderColor: colors.concrete,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  },
-
-  requestSection: {
-    marginTop: 46,
-  },
-
-  activeMark: {
-    width: 7,
-    height: 7,
-    borderRadius: 4,
-    backgroundColor: colors.broccoli,
-    marginBottom: 7,
-  },
-
-  request: {
-    paddingTop: 16,
-  },
-
-  requestCopy: {
-    marginTop: 4,
-  },
-
-  requestBottom: {
-    marginTop: 15,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  },
-
-  actions: {
-    marginTop: 45,
-    borderTopWidth: 2,
-    borderTopColor: colors.ink,
-  },
-
-  actionLink: {
-    minHeight: 82,
-    paddingVertical: 14,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.concrete,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  },
-
-  footer: {
-    alignItems: 'center',
-    marginTop: 45,
-    paddingTop: 4,
-  },
-
-  pressed: {
-    opacity: 0.65,
-  },
+  screen: { flex: 1, backgroundColor: colors.bone },
+  content: { paddingHorizontal: spacing.page, paddingTop: spacing.lg, paddingBottom: 105 },
+  header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  headerMeta: { marginTop: 4 },
+  avatar: { alignItems: 'center', justifyContent: 'center' },
+  avatarDark: { backgroundColor: colors.ink },
+  avatarGreen: { backgroundColor: colors.broccoli },
+  avatarLight: { backgroundColor: colors.white, borderWidth: 1, borderColor: colors.concrete },
+  avatarDarkText: { color: colors.bone },
+  avatarLightText: { color: colors.ink },
+  intro: { marginTop: 38, marginBottom: 22 },
+  introTitle: { fontSize: 59, lineHeight: 51, letterSpacing: -1.8, marginTop: 7 },
+  gameCard: { backgroundColor: colors.ink, padding: 16, minHeight: 420 },
+  gameCardTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  live: { flexDirection: 'row', alignItems: 'center', gap: 7 },
+  liveDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: colors.signal },
+  greenText: { color: colors.signal },
+  darkMuted: { color: '#989D94' },
+  gameVisual: { height: 190, marginTop: 4, position: 'relative', overflow: 'hidden' },
+  courtMark: { position: 'absolute', right: -7, top: 8, width: 235, height: 175, borderWidth: 1, borderColor: '#3A3E38', transform: [{ rotate: '-8deg' }] },
+  courtFrame: { position: 'absolute', left: 18, right: 18, top: 17, bottom: 17, borderWidth: 1, borderColor: '#666B62' },
+  courtNet: { position: 'absolute', top: 17, bottom: 17, left: '50%', width: 1, backgroundColor: '#666B62' },
+  courtCentre: { position: 'absolute', left: '25%', right: '25%', top: '50%', height: 1, backgroundColor: '#444941' },
+  courtDot: { position: 'absolute', width: 12, height: 12, borderRadius: 6, backgroundColor: colors.signal, left: '50%', top: '50%', marginLeft: -6, marginTop: -6 },
+  courtSlash: { position: 'absolute', width: 150, height: 2, backgroundColor: colors.signal, left: 30, top: 90, transform: [{ rotate: '-25deg' }] },
+  timeBlock: { position: 'absolute', left: 0, bottom: 0, zIndex: 2 },
+  time: { color: colors.bone, fontSize: 100, lineHeight: 89, fontWeight: '800', letterSpacing: -5 },
+  pm: { color: colors.bone, position: 'absolute', left: 105, bottom: 7 },
+  gameInfo: { paddingTop: 14, borderTopWidth: 1, borderTopColor: '#30342F', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-end' },
+  gameCopy: { flex: 1, paddingRight: 10 },
+  lightHeading: { color: colors.bone },
+  darkBody: { color: '#B9BDB5', marginTop: 2 },
+  peopleStack: { width: 95, height: 34, flexDirection: 'row', justifyContent: 'flex-end' },
+  stackOverlap: { marginLeft: -8 },
+  gameBottom: { marginTop: 16, paddingTop: 12, borderTopWidth: 1, borderTopColor: '#30342F', flexDirection: 'row', justifyContent: 'space-between' },
+  darkArrow: { color: colors.signal, fontSize: 16 },
+  arrow: { color: colors.ink, fontSize: 19, lineHeight: 20 },
+  pulse: { marginTop: 0, minHeight: 82, backgroundColor: colors.white, borderBottomWidth: 1, borderBottomColor: colors.concrete, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-around' },
+  pulseItem: { alignItems: 'center', flex: 1 },
+  pulseNumber: { fontSize: 27, lineHeight: 27, fontWeight: '800' },
+  pulseRule: { width: 1, height: 35, backgroundColor: colors.concrete },
+  section: { marginTop: 44 },
+  sectionHead: { paddingBottom: 10, borderBottomWidth: 1, borderBottomColor: colors.concrete, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-end' },
+  sectionTitle: { fontSize: 29, lineHeight: 30, marginTop: 2 },
+  matchRow: { minHeight: 86, paddingVertical: 14, borderBottomWidth: 1, borderBottomColor: colors.concrete, flexDirection: 'row', alignItems: 'center' },
+  matchTime: { width: 58, gap: 2 },
+  matchCopy: { flex: 1, paddingRight: 10 },
+  matchRight: { alignItems: 'flex-end', gap: 5 },
+  allGames: { minHeight: 48, borderBottomWidth: 1, borderBottomColor: colors.concrete, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  peopleSection: { marginTop: 44 },
+  peopleRow: { flexDirection: 'row', justifyContent: 'space-between', paddingTop: 19 },
+  person: { width: '23%', alignItems: 'center' },
+  personName: { fontSize: 13, marginTop: 7 },
+  needPlayers: { marginTop: 44, minHeight: 118, padding: 16, backgroundColor: colors.white, borderTopWidth: 2, borderTopColor: colors.ink, borderBottomWidth: 1, borderBottomColor: colors.concrete, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  needTitle: { marginTop: 3, fontSize: 27, lineHeight: 29 },
+  needCopy: { marginTop: 3 },
+  footer: { alignItems: 'center', marginTop: 44 },
+  pressed: { opacity: 0.68 },
 });
