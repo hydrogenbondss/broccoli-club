@@ -1,0 +1,22 @@
+{
+  "expo": {
+    "name": "Broccoli Club",
+    "slug": "broccoli-club",
+    "version": "0.1.0",
+    "orientation": "portrait",
+    "scheme": "broccoliclub",
+    "userInterfaceStyle": "light",
+    "newArchEnabled": true,
+    "plugins": ["expo-router"],
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.broccoliclub.app"
+    },
+    "android": {
+      "package": "com.broccoliclub.app"
+    },
+    "web": {
+      "bundler": "metro"
+    }
+  }
+}
