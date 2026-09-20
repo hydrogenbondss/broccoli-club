@@ -79,10 +79,10 @@ export function MotionPressable({
     [animate, onPressOut],
   );
 
-  const state: PressableStateCallbackType = {
+  const state = {
     pressed,
     hovered: false,
-  };
+  } as PressableStateCallbackType;
 
   const resolvedStyle =
     typeof style === 'function' ? style(state) : style;
