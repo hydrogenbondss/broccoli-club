@@ -290,9 +290,11 @@ export function getFeaturedGame(games: MockGame[]): MockGame {
   return featured;
 }
 
-/** Open games for Play “Open games” rows (excludes featured hero). */
+/** Open games for Play “Open games” rows (excludes featured hero; today+ only). */
 export function listPlayOpenGames(games: MockGame[]): MockGame[] {
-  return games.filter((g) => g.status === 'OPEN' && !g.featured);
+  return games.filter(
+    (g) => g.status === 'OPEN' && !g.featured && isIsoDateTodayOrLater(g.date),
+  );
 }
 
 /** Upcoming open games for Games list (excludes featured next-fixture; today+ only). */
@@ -312,9 +314,9 @@ export function getPlayHeaderDay(games: MockGame[]): string {
 }
 
 export function countOpenGames(games: MockGame[]): number {
-  return games.filter((g) => g.status === 'OPEN' && !g.featured).length;
+  return listUpcomingGames(games).length;
 }
 
 export function countUpcomingIncludingFeatured(games: MockGame[]): number {
-  return games.filter((g) => g.status === 'OPEN').length;
+  return games.filter((g) => g.status === 'OPEN' && isIsoDateTodayOrLater(g.date)).length;
 }
