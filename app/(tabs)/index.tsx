@@ -127,6 +127,7 @@ export default function PlayScreen() {
             <Text variant="meta" muted style={styles.headerMeta}>Hong Kong · {headerDay}</Text>
           </View>
           <MotionPressable
+            haptic="selection"
             onPress={() => router.push('/profile')}
             accessibilityRole="button"
             accessibilityLabel="Open People"
@@ -169,20 +170,22 @@ export default function PlayScreen() {
           </View>
         </Entrance>
 
-        <MotionPressable
-          onPress={() => router.push('/game/new')}
-          accessibilityRole="button"
-          accessibilityLabel="Create a game"
-          accessibilityHint="Opens the create game form"
-          style={({ pressed }) => [styles.needPlayers, pressed && styles.pressed]}
-        >
-          <View>
-            <Text variant="meta" muted>Have a court?</Text>
-            <Text variant="title" style={styles.needTitle}>Bring the club in.</Text>
-            <Text variant="body" muted style={styles.needCopy}>Open a game and fill the empty spots.</Text>
-          </View>
-          <Arrow />
-        </MotionPressable>
+        <Entrance delay={120}>
+          <MotionPressable
+            onPress={() => router.push('/game/new')}
+            accessibilityRole="button"
+            accessibilityLabel="Create a game"
+            accessibilityHint="Opens the create game form"
+            style={({ pressed }) => [styles.needPlayers, pressed && styles.pressed]}
+          >
+            <View>
+              <Text variant="meta" muted>Have a court?</Text>
+              <Text variant="title" style={styles.needTitle}>Bring the club in.</Text>
+              <Text variant="body" muted style={styles.needCopy}>Open a game and fill the empty spots.</Text>
+            </View>
+            <Arrow />
+          </MotionPressable>
+        </Entrance>
 
         <View style={styles.footer}>
           <Text variant="body" muted>Never just a side.</Text>

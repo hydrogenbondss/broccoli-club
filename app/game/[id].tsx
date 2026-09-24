@@ -231,6 +231,7 @@ export default function GameDetailScreen() {
             </MotionPressable>
             {canLeave ? (
               <MotionPressable
+                haptic="selection"
                 onPress={() => leaveGame(game.id)}
                 accessibilityRole="button"
                 accessibilityLabel={`Leave game at ${game.venue}`}

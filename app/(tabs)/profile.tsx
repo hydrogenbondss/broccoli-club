@@ -36,6 +36,7 @@ function SharedGameRow({
 }) {
   return (
     <MotionPressable
+      haptic="selection"
       onPress={onPress}
       accessibilityRole="button"
       accessibilityLabel={`Open shared game at ${game.venue}, ${game.dateLabel}`}
@@ -139,6 +140,7 @@ export default function PeopleScreen() {
               return (
                 <MotionPressable
                   key={person.id}
+                  haptic="selection"
                   onPress={() =>
                     router.push({ pathname: '/person/[id]', params: { id: person.id } })
                   }

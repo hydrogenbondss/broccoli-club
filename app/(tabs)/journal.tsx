@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import { ScrollView, StyleSheet, View } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -77,18 +77,19 @@ function PersonNameLink({
   const router = useRouter();
 
   return (
-    <Pressable
+    <MotionPressable
+      haptic="selection"
       onPress={() => openPerson(router, person)}
       accessibilityRole="button"
       accessibilityLabel={`Open ${person.name}'s club record`}
       hitSlop={6}
-      style={({ pressed }) => [pressed && styles.namePressed]}
+      style={({ pressed }) => [pressed && styles.pressed]}
     >
       <Text variant="body">
         {person.name}
         {isLast ? '' : ' · '}
       </Text>
-    </Pressable>
+    </MotionPressable>
   );
 }
 
@@ -307,9 +308,6 @@ const styles = StyleSheet.create({
     flexWrap: 'wrap',
     alignItems: 'center',
     flexShrink: 1,
-  },
-  namePressed: {
-    opacity: 0.6,
   },
   markWrap: {
     marginTop: spacing.lg,

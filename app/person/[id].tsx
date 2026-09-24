@@ -39,6 +39,7 @@ function GameRow({
 }) {
   return (
     <MotionPressable
+      haptic="selection"
       onPress={onPress}
       accessibilityRole="button"
       accessibilityLabel={`Open game at ${game.venue}, ${game.dateLabel}`}

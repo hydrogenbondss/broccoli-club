@@ -16,6 +16,7 @@ import {
 } from '@expo-google-fonts/ibm-plex-mono';
 
 import { GamesStoreProvider } from '@/context/GamesStore';
+import { colors, motion } from '@/theme';
 
 export { ErrorBoundary } from 'expo-router';
 
@@ -41,27 +42,19 @@ export default function RootLayout() {
 
   return (
     <GamesStoreProvider>
-      <Stack>
-        <Stack.Screen
-          name="(tabs)"
-          options={{ headerShown: false }}
-        />
-        <Stack.Screen
-          name="game/[id]"
-          options={{ headerShown: false }}
-        />
-        <Stack.Screen
-          name="game/new"
-          options={{ headerShown: false }}
-        />
-        <Stack.Screen
-          name="person/[id]"
-          options={{ headerShown: false }}
-        />
-        <Stack.Screen
-          name="mark-lab"
-          options={{ headerShown: false }}
-        />
+      <Stack
+        screenOptions={{
+          headerShown: false,
+          contentStyle: { backgroundColor: colors.bone },
+          animation: 'fade',
+          animationDuration: motion.standard,
+        }}
+      >
+        <Stack.Screen name="(tabs)" />
+        <Stack.Screen name="game/[id]" />
+        <Stack.Screen name="game/new" />
+        <Stack.Screen name="person/[id]" />
+        <Stack.Screen name="mark-lab" />
       </Stack>
     </GamesStoreProvider>
   );

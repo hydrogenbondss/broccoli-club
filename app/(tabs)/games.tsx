@@ -180,7 +180,7 @@ export default function GamesScreen() {
           <Text variant="meta" muted>{pad2(openCount)} upcoming</Text>
         </View>
 
-        <Entrance delay={60}>
+        <Entrance delay={40}>
           <NextFixture
             game={featured}
             onPress={() => router.push({ pathname: '/game/[id]', params: { id: featured.id } })}
@@ -357,5 +357,5 @@ const styles = StyleSheet.create({
   emptyCopy: { maxWidth: 280 },
   emptyRoutes: { flexDirection: 'row', gap: 24, marginTop: 8 },
   emptyLink: { minHeight: 40, justifyContent: 'center' },
-  pressed: { opacity: 0.72 },
+  pressed: { opacity: 0.68 },
 });

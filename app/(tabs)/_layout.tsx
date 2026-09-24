@@ -1,8 +1,9 @@
-import { Pressable, StyleSheet, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import { Tabs } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import type { BottomTabBarProps } from 'expo-router/tabs';
 
+import { MotionPressable } from '@/components/MotionPressable';
 import { Text } from '@/components/Text';
 import { colors, typography } from '@/theme';
 
@@ -40,8 +41,9 @@ function ClubTabBar({ state, navigation }: BottomTabBarProps) {
         };
 
         return (
-          <Pressable
+          <MotionPressable
             key={route.key}
+            haptic="selection"
             accessibilityRole="button"
             accessibilityState={focused ? { selected: true } : {}}
             accessibilityLabel={label}
@@ -58,7 +60,7 @@ function ClubTabBar({ state, navigation }: BottomTabBarProps) {
             >
               {label}
             </Text>
-          </Pressable>
+          </MotionPressable>
         );
       })}
     </View>
