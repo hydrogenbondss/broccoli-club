@@ -206,6 +206,17 @@ function parseLocalDate(isoDate: string): Date {
   return new Date(y, (m ?? 1) - 1, d ?? 1);
 }
 
+/** Local calendar YYYY-MM-DD for "now" (device timezone). */
+export function todayLocalIso(): string {
+  const now = new Date();
+  return `${now.getFullYear()}-${pad2(now.getMonth() + 1)}-${pad2(now.getDate())}`;
+}
+
+/** True when ISO date is today or a future local calendar day. */
+export function isIsoDateTodayOrLater(isoDate: string): boolean {
+  return isoDate.trim() >= todayLocalIso();
+}
+
 function hour12FromHHMM(hhmm: string): number {
   const h = Number(hhmm.split(':')[0] ?? 0);
   const mod = h % 12;
@@ -284,9 +295,11 @@ export function listPlayOpenGames(games: MockGame[]): MockGame[] {
   return games.filter((g) => g.status === 'OPEN' && !g.featured);
 }
 
-/** Upcoming open games for Games list (excludes featured next-fixture). */
+/** Upcoming open games for Games list (excludes featured next-fixture; today+ only). */
 export function listUpcomingGames(games: MockGame[]): MockGame[] {
-  return games.filter((g) => g.status === 'OPEN' && !g.featured);
+  return games.filter(
+    (g) => g.status === 'OPEN' && !g.featured && isIsoDateTodayOrLater(g.date),
+  );
 }
 
 export function listPastGames(games: MockGame[]): MockGame[] {

@@ -14,6 +14,7 @@ import { Entrance } from '@/components/Entrance';
 import { MotionPressable } from '@/components/MotionPressable';
 import { Text } from '@/components/Text';
 import { useGamesStore } from '@/context/GamesStore';
+import { isIsoDateTodayOrLater } from '@/data/mockGames';
 import { colors, spacing, typography } from '@/theme';
 
 type FormState = {
@@ -199,6 +200,8 @@ export default function CreateGameScreen() {
 
     if (!next.date && !isValidIsoDate(form.date)) {
       next.date = 'Use YYYY-MM-DD';
+    } else if (!next.date && !isIsoDateTodayOrLater(form.date)) {
+      next.date = 'Must be today or later';
     }
 
     if (!next.startTime && !isValidHhmm(form.startTime)) {
