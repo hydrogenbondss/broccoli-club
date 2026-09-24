@@ -18,6 +18,8 @@ import Animated, {
   withTiming,
 } from 'react-native-reanimated';
 
+import { motion } from '@/theme';
+
 type HapticType = 'light' | 'medium' | 'selection' | 'none';
 
 type MotionPressableProps = Omit<PressableProps, 'style'> & {
@@ -44,7 +46,7 @@ export function MotionPressable({
       // Reanimated SharedValues are intentionally mutable.
       // eslint-disable-next-line react-hooks/immutability
       scale.value = withTiming(value, {
-        duration: value === 1 ? 180 : 90,
+        duration: value === 1 ? motion.fast : Math.round(motion.fast / 2),
         easing: Easing.out(Easing.quad),
         reduceMotion: ReduceMotion.System,
       });

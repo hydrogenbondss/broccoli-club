@@ -1,8 +1,19 @@
 import { ScrollView, StyleSheet, View } from 'react-native';
+import { useRouter } from 'expo-router';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { BroccoliMark, fixtureMarkAccents } from '@/components/BroccoliMark';
+import { Entrance } from '@/components/Entrance';
 import { MotionPressable } from '@/components/MotionPressable';
+import { StateFadeText } from '@/components/StateFadeText';
 import { Text } from '@/components/Text';
-import { colors, spacing } from '@/theme';
+import { useGamesStore } from '@/context/GamesStore';
+import {
+  playersLabel,
+  type MockGame,
+  userStateLabel,
+} from '@/data/mockGames';
+import { colors, spacing, typography } from '@/theme';
 
 function Avatar({ initials, tone = 'light', size = 42 }: { initials: string; tone?: 'dark' | 'green' | 'light'; size?: number }) {
   return (
@@ -22,42 +33,54 @@ function Arrow() {
   return <Text style={styles.arrow}>↗</Text>;
 }
 
-function CourtMark() {
-  return (
-    <View pointerEvents="none" style={styles.courtMark}>
-      <View style={styles.courtFrame} />
-      <View style={styles.courtNet} />
-      <View style={styles.courtCentre} />
-      <View style={styles.courtDot} />
-      <View style={styles.courtSlash} />
-    </View>
-  );
-}
+function GameCard({ game, onPress }: { game: MockGame; onPress: () => void }) {
+  const state = userStateLabel(game);
+  const isLive = state === 'YOU\'RE IN' || state === 'OPEN';
 
-function GameCard() {
   return (
-    <MotionPressable onPress={() => {}} haptic="medium" style={({ pressed }) => [styles.gameCard, pressed && styles.pressed]}>
+    <MotionPressable
+      onPress={onPress}
+      haptic="medium"
+      accessibilityRole="button"
+      accessibilityLabel={`Open featured game at ${game.venue}`}
+      accessibilityHint={`Status ${state}. ${playersLabel(game)} players`}
+      style={({ pressed }) => [styles.gameCard, pressed && styles.pressed]}
+    >
       <View style={styles.gameCardTop}>
         <View style={styles.live}>
-          <View style={styles.liveDot} />
-          <Text variant="meta" style={styles.greenText}>YOU’RE IN</Text>
+          {isLive ? <View style={styles.liveDot} /> : null}
+          <StateFadeText
+            value={state}
+            variant="meta"
+            style={isLive ? styles.signalText : styles.darkMuted}
+          />
         </View>
         <Text variant="meta" style={styles.darkMuted}>01 / 03</Text>
       </View>
 
       <View style={styles.gameVisual}>
-        <CourtMark />
+        <View pointerEvents="none" style={styles.markGraphic}>
+          <BroccoliMark
+            tone="dark"
+            size={1.15}
+            animated={false}
+            activePresence="quiet"
+            accents={fixtureMarkAccents(game)}
+          />
+        </View>
         <View style={styles.timeBlock}>
-          <Text variant="meta" style={styles.darkMuted}>TODAY · SUN 20 SEP</Text>
-          <Text style={styles.time}>4—6</Text>
-          <Text variant="label" style={styles.pm}>PM</Text>
+          <Text variant="meta" style={styles.darkMuted}>{game.dateLabel}</Text>
+          <View style={styles.timeRow}>
+            <Text variant="time" style={styles.time}>{game.timeRange}</Text>
+            <Text variant="label" style={styles.pm}>{game.period}</Text>
+          </View>
         </View>
       </View>
 
       <View style={styles.gameInfo}>
         <View style={styles.gameCopy}>
-          <Text variant="headline" style={styles.lightHeading}>VICTORIA PARK</Text>
-          <Text variant="body" style={styles.darkBody}>Court 03 · Intermediate doubles</Text>
+          <Text variant="headline" style={styles.lightHeading}>{game.venue}</Text>
+          <Text variant="body" style={styles.darkBody}>{game.detail}</Text>
         </View>
         <View style={styles.peopleStack}>
           <Avatar initials="J" tone="light" size={34} />
@@ -68,114 +91,94 @@ function GameCard() {
       </View>
 
       <View style={styles.gameBottom}>
-        <Text variant="meta" style={styles.darkMuted}>03 / 04 PLAYERS</Text>
-        <Text variant="label" style={styles.greenText}>VIEW GAME <Text style={styles.darkArrow}>↗</Text></Text>
+        <StateFadeText
+          value={`${playersLabel(game)} players`}
+          variant="meta"
+          style={styles.darkMuted}
+        />
+        <Text variant="label" style={styles.boneLabel}>View game <Text style={styles.boneArrow}>↗</Text></Text>
       </View>
     </MotionPressable>
   );
 }
 
-function MatchRow({ time, place, detail, players }: { time: string; place: string; detail: string; players: string }) {
-  return (
-    <MotionPressable onPress={() => {}} style={({ pressed }) => [styles.matchRow, pressed && styles.pressed]}>
-      <View style={styles.matchTime}><Text variant="label">{time}</Text><Text variant="meta" muted>TODAY</Text></View>
-      <View style={styles.matchCopy}>
-        <Text variant="title">{place}</Text>
-        <Text variant="body" muted>{detail}</Text>
-      </View>
-      <View style={styles.matchRight}>
-        <Text variant="meta" style={styles.greenText}>{players}</Text>
-        <Arrow />
-      </View>
-    </MotionPressable>
-  );
-}
-
-function Person({ initials, name, games, tone }: { initials: string; name: string; games: string; tone: 'dark' | 'green' | 'light' }) {
-  return (
-    <View style={styles.person}>
-      <Avatar initials={initials} tone={tone} size={54} />
-      <Text variant="title" style={styles.personName}>{name}</Text>
-      <Text variant="meta" muted>{games}</Text>
-    </View>
-  );
+function pad2(n: number): string {
+  return String(n).padStart(2, '0');
 }
 
 export default function PlayScreen() {
+  const router = useRouter();
+  const insets = useSafeAreaInsets();
+  const {
+    featuredGame: featured,
+    openGamesCount: openCount,
+    playHeaderDay: headerDay,
+  } = useGamesStore();
+
   return (
-    <View style={styles.screen}>
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.content}>
+    <View style={[styles.screen, { paddingTop: insets.top }]}>
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={[styles.content, { paddingBottom: 105 + insets.bottom }]}
+      >
         <View style={styles.header}>
           <View>
-            <Text variant="label">BROCCOLI CLUB</Text>
-            <Text variant="meta" muted style={styles.headerMeta}>HONG KONG · SATURDAY</Text>
+            <Text variant="label">Broccoli Club</Text>
+            <Text variant="meta" muted style={styles.headerMeta}>Hong Kong · {headerDay}</Text>
           </View>
-          <Avatar initials="J" tone="green" size={38} />
-        </View>
-
-        <View style={styles.intro}>
-          <Text variant="meta" muted>YOUR CLUB, TODAY</Text>
-          <Text variant="display" style={styles.introTitle}>PLAY<br />SOMETHING.</Text>
-        </View>
-
-        <GameCard />
-
-        <View style={styles.pulse}>
-          <View style={styles.pulseItem}>
-            <Text style={styles.pulseNumber}>03</Text>
-            <Text variant="meta" muted>PLAYERS LOOKING</Text>
-          </View>
-          <View style={styles.pulseRule} />
-          <View style={styles.pulseItem}>
-            <Text style={styles.pulseNumber}>02</Text>
-            <Text variant="meta" muted>GAMES OPEN</Text>
-          </View>
-          <View style={styles.pulseRule} />
-          <View style={styles.pulseItem}>
-            <Text style={styles.pulseNumber}>01</Text>
-            <Text variant="meta" muted>TONIGHT</Text>
-          </View>
-        </View>
-
-        <View style={styles.section}>
-          <View style={styles.sectionHead}>
-            <View>
-              <Text variant="meta" muted>THE CLUB</Text>
-              <Text variant="headline" style={styles.sectionTitle}>Open games</Text>
-            </View>
-            <Text variant="meta" muted>THIS WEEKEND</Text>
-          </View>
-
-          <MatchRow time="10—12" place="KOWLOON CRICKET CLUB" detail="Court 02 · Beginner / intermediate" players="02 / 04" />
-          <MatchRow time="4—6" place="HAPPY VALLEY" detail="Court 01 · Intermediate singles" players="01 / 02" />
-
-          <MotionPressable onPress={() => {}} style={({ pressed }) => [styles.allGames, pressed && styles.pressed]}>
-            <Text variant="label">SEE ALL GAMES</Text>
-            <Arrow />
+          <MotionPressable
+            onPress={() => router.push('/profile')}
+            accessibilityRole="button"
+            accessibilityLabel="Open People"
+            style={({ pressed }) => [pressed && styles.pressed]}
+          >
+            <Avatar initials="J" tone="green" size={38} />
           </MotionPressable>
         </View>
 
-        <View style={styles.peopleSection}>
-          <View style={styles.sectionHead}>
-            <View>
-              <Text variant="meta" muted>THE PEOPLE</Text>
-              <Text variant="headline" style={styles.sectionTitle}>Your people</Text>
+        <Entrance>
+          <View style={styles.intro}>
+            <Text variant="meta" muted>Your club, today</Text>
+            <Text variant="display" style={styles.introTitle}>Play{'\n'}something.</Text>
+          </View>
+        </Entrance>
+
+        <Entrance delay={40}>
+          <GameCard
+            game={featured}
+            onPress={() => router.push({ pathname: '/game/[id]', params: { id: featured.id } })}
+          />
+        </Entrance>
+
+        <Entrance delay={80}>
+          <View style={styles.pulse}>
+            <View style={styles.pulseItem}>
+              <Text variant="title" style={styles.pulseNumber}>03</Text>
+              <Text variant="meta" muted>Players looking</Text>
             </View>
-            <Text variant="meta" muted>PLAYED TOGETHER</Text>
+            <View style={styles.pulseRule} />
+            <View style={styles.pulseItem}>
+              <Text variant="title" style={styles.pulseNumber}>{pad2(openCount)}</Text>
+              <Text variant="meta" muted>Games open</Text>
+            </View>
+            <View style={styles.pulseRule} />
+            <View style={styles.pulseItem}>
+              <Text variant="title" style={styles.pulseNumber}>01</Text>
+              <Text variant="meta" muted>Tonight</Text>
+            </View>
           </View>
+        </Entrance>
 
-          <View style={styles.peopleRow}>
-            <Person initials="A" name="Alex" games="6 games" tone="green" />
-            <Person initials="M" name="Maya" games="4 games" tone="dark" />
-            <Person initials="D" name="Daniel" games="3 games" tone="light" />
-            <Person initials="+" name="More" games="People" tone="light" />
-          </View>
-        </View>
-
-        <MotionPressable onPress={() => {}} style={({ pressed }) => [styles.needPlayers, pressed && styles.pressed]}>
+        <MotionPressable
+          onPress={() => router.push('/game/new')}
+          accessibilityRole="button"
+          accessibilityLabel="Create a game"
+          accessibilityHint="Opens the create game form"
+          style={({ pressed }) => [styles.needPlayers, pressed && styles.pressed]}
+        >
           <View>
-            <Text variant="meta" muted>HAVE A COURT?</Text>
-            <Text variant="headline" style={styles.needTitle}>Bring the club in.</Text>
+            <Text variant="meta" muted>Have a court?</Text>
+            <Text variant="title" style={styles.needTitle}>Bring the club in.</Text>
             <Text variant="body" muted style={styles.needCopy}>Open a game and fill the empty spots.</Text>
           </View>
           <Arrow />
@@ -201,51 +204,50 @@ const styles = StyleSheet.create({
   avatarDarkText: { color: colors.bone },
   avatarLightText: { color: colors.ink },
   intro: { marginTop: 38, marginBottom: 22 },
-  introTitle: { fontSize: 59, lineHeight: 51, letterSpacing: -1.8, marginTop: 7 },
-  gameCard: { backgroundColor: colors.ink, padding: 16, minHeight: 420 },
-  gameCardTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  introTitle: {
+    marginTop: 7,
+  },
+  gameCard: { backgroundColor: colors.ink, padding: 16, minHeight: 400, overflow: 'hidden' },
+  gameCardTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', zIndex: 2 },
   live: { flexDirection: 'row', alignItems: 'center', gap: 7 },
   liveDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: colors.signal },
-  greenText: { color: colors.signal },
-  darkMuted: { color: '#989D94' },
-  gameVisual: { height: 190, marginTop: 4, position: 'relative', overflow: 'hidden' },
-  courtMark: { position: 'absolute', right: -7, top: 8, width: 235, height: 175, borderWidth: 1, borderColor: '#3A3E38', transform: [{ rotate: '-8deg' }] },
-  courtFrame: { position: 'absolute', left: 18, right: 18, top: 17, bottom: 17, borderWidth: 1, borderColor: '#666B62' },
-  courtNet: { position: 'absolute', top: 17, bottom: 17, left: '50%', width: 1, backgroundColor: '#666B62' },
-  courtCentre: { position: 'absolute', left: '25%', right: '25%', top: '50%', height: 1, backgroundColor: '#444941' },
-  courtDot: { position: 'absolute', width: 12, height: 12, borderRadius: 6, backgroundColor: colors.signal, left: '50%', top: '50%', marginLeft: -6, marginTop: -6 },
-  courtSlash: { position: 'absolute', width: 150, height: 2, backgroundColor: colors.signal, left: 30, top: 90, transform: [{ rotate: '-25deg' }] },
+  signalText: { color: colors.signal },
+  boneLabel: { color: colors.bone },
+  boneArrow: { color: colors.bone, fontSize: 14, fontFamily: typography.label.fontFamily },
+  darkMuted: { color: colors.muted },
+  gameVisual: { height: 176, marginTop: 2, position: 'relative', overflow: 'hidden' },
+  markGraphic: {
+    position: 'absolute',
+    right: -54,
+    top: -48,
+    opacity: 0.72,
+    transform: [{ rotate: '-9deg' }],
+  },
   timeBlock: { position: 'absolute', left: 0, bottom: 0, zIndex: 2 },
-  time: { color: colors.bone, fontSize: 100, lineHeight: 89, fontWeight: '800', letterSpacing: -5 },
-  pm: { color: colors.bone, position: 'absolute', left: 105, bottom: 7 },
-  gameInfo: { paddingTop: 14, borderTopWidth: 1, borderTopColor: '#30342F', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-end' },
+  timeRow: { flexDirection: 'row', alignItems: 'flex-end' },
+  /** TIME role + controlled size modifier for featured poster */
+  time: {
+    color: colors.bone,
+    fontSize: 80,
+    lineHeight: 76,
+    letterSpacing: -2.4,
+  },
+  pm: { color: colors.bone, marginLeft: 4, marginBottom: 10 },
+  gameInfo: { paddingTop: 14, borderTopWidth: 1, borderTopColor: colors.muted, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-end' },
   gameCopy: { flex: 1, paddingRight: 10 },
   lightHeading: { color: colors.bone },
-  darkBody: { color: '#B9BDB5', marginTop: 2 },
+  darkBody: { color: colors.concrete, marginTop: 2 },
   peopleStack: { width: 95, height: 34, flexDirection: 'row', justifyContent: 'flex-end' },
   stackOverlap: { marginLeft: -8 },
-  gameBottom: { marginTop: 16, paddingTop: 12, borderTopWidth: 1, borderTopColor: '#30342F', flexDirection: 'row', justifyContent: 'space-between' },
-  darkArrow: { color: colors.signal, fontSize: 16 },
-  arrow: { color: colors.ink, fontSize: 19, lineHeight: 20 },
-  pulse: { marginTop: 0, minHeight: 82, backgroundColor: colors.white, borderBottomWidth: 1, borderBottomColor: colors.concrete, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-around' },
+  gameBottom: { marginTop: 16, paddingTop: 12, borderTopWidth: 1, borderTopColor: colors.muted, flexDirection: 'row', justifyContent: 'space-between' },
+  arrow: { color: colors.ink, fontSize: 18, lineHeight: 20, fontFamily: typography.label.fontFamily },
+  pulse: { marginTop: 0, minHeight: 64, backgroundColor: colors.bone, borderBottomWidth: 1, borderBottomColor: colors.concrete, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-around' },
   pulseItem: { alignItems: 'center', flex: 1 },
-  pulseNumber: { fontSize: 27, lineHeight: 27, fontWeight: '800' },
-  pulseRule: { width: 1, height: 35, backgroundColor: colors.concrete },
-  section: { marginTop: 44 },
-  sectionHead: { paddingBottom: 10, borderBottomWidth: 1, borderBottomColor: colors.concrete, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-end' },
-  sectionTitle: { fontSize: 29, lineHeight: 30, marginTop: 2 },
-  matchRow: { minHeight: 86, paddingVertical: 14, borderBottomWidth: 1, borderBottomColor: colors.concrete, flexDirection: 'row', alignItems: 'center' },
-  matchTime: { width: 58, gap: 2 },
-  matchCopy: { flex: 1, paddingRight: 10 },
-  matchRight: { alignItems: 'flex-end', gap: 5 },
-  allGames: { minHeight: 48, borderBottomWidth: 1, borderBottomColor: colors.concrete, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  peopleSection: { marginTop: 44 },
-  peopleRow: { flexDirection: 'row', justifyContent: 'space-between', paddingTop: 19 },
-  person: { width: '23%', alignItems: 'center' },
-  personName: { fontSize: 13, marginTop: 7 },
-  needPlayers: { marginTop: 44, minHeight: 118, padding: 16, backgroundColor: colors.white, borderTopWidth: 2, borderTopColor: colors.ink, borderBottomWidth: 1, borderBottomColor: colors.concrete, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  needTitle: { marginTop: 3, fontSize: 27, lineHeight: 29 },
+  pulseNumber: { fontSize: typography.title.fontSize, lineHeight: typography.title.lineHeight, letterSpacing: typography.title.letterSpacing, fontFamily: typography.title.fontFamily },
+  pulseRule: { width: 1, height: 28, backgroundColor: colors.concrete },
+  needPlayers: { marginTop: 32, minHeight: 88, paddingVertical: 16, paddingHorizontal: 0, backgroundColor: colors.bone, borderTopWidth: 1, borderTopColor: colors.concrete, borderBottomWidth: 1, borderBottomColor: colors.concrete, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  needTitle: { marginTop: 3 },
   needCopy: { marginTop: 3 },
-  footer: { alignItems: 'center', marginTop: 44 },
+  footer: { alignItems: 'center', marginTop: 32 },
   pressed: { opacity: 0.68 },
 });

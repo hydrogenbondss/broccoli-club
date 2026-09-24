@@ -7,7 +7,8 @@ type TextVariant =
   | 'title'
   | 'body'
   | 'label'
-  | 'meta';
+  | 'meta'
+  | 'time';
 
 type TextProps = RNTextProps & {
   variant?: TextVariant;

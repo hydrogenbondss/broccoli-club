@@ -48,7 +48,7 @@ function BroccoliMark({
   accents = [],
   compact = false,
 }: {
-  accents?: Array<{ index: number; state: Exclude<MarkState, 'default'> }>;
+  accents?: { index: number; state: Exclude<MarkState, 'default'> }[];
   compact?: boolean;
 }) {
   const states = new Map(accents.map(({ index, state }) => [index, state]));
@@ -125,7 +125,7 @@ export default function MarkLabScreen() {
 
         <View style={styles.hero}>
           <Text variant="meta" muted>WORKING SYSTEM / 01</Text>
-          <Text style={styles.heroTitle}>ONE MARK.<br />THREE STATES.</Text>
+          <Text variant="display" style={styles.heroTitle}>One mark.{'\n'}Three states.</Text>
           <Text variant="body" muted style={styles.heroCopy}>
             The broccoli stays familiar. Only a few nodes change when something actually matters.
           </Text>
@@ -237,9 +237,9 @@ const styles = StyleSheet.create({
   },
   back: {
     color: colors.ink,
+    fontFamily: 'IBMPlexMono_600SemiBold',
     fontSize: 11,
-    fontWeight: '600',
-    letterSpacing: 1,
+    letterSpacing: 0.5,
   },
   hero: {
     marginTop: 46,
@@ -247,11 +247,6 @@ const styles = StyleSheet.create({
   },
   heroTitle: {
     marginTop: 10,
-    fontSize: 48,
-    lineHeight: 45,
-    fontWeight: '700',
-    letterSpacing: -1.8,
-    color: colors.ink,
   },
   heroCopy: {
     marginTop: 18,

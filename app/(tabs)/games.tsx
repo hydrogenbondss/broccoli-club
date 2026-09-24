@@ -1,152 +1,260 @@
-import { useState } from 'react';
 import { ScrollView, StyleSheet, View } from 'react-native';
+import { useRouter } from 'expo-router';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { BroccoliMark } from '@/components/BroccoliMark';
+import { Entrance } from '@/components/Entrance';
 import { MotionPressable } from '@/components/MotionPressable';
+import { StateFadeText } from '@/components/StateFadeText';
 import { Text } from '@/components/Text';
-import { colors, spacing } from '@/theme';
-
-type Filter = 'upcoming' | 'past';
-
-function Arrow() {
-  return <Text style={styles.arrow}>↗</Text>;
-}
+import { useGamesStore } from '@/context/GamesStore';
+import {
+  playersLabel,
+  priceLabel,
+  type MockGame,
+  userStateLabel,
+} from '@/data/mockGames';
+import { colors, spacing, typography } from '@/theme';
 
 function Marker({ active = false }: { active?: boolean }) {
   return <View style={[styles.marker, active && styles.markerActive]} />;
 }
 
-function CourtGraphic() {
+function pad2(n: number): string {
+  return String(n).padStart(2, '0');
+}
+
+/** Tiny cropped constellation — sparse interruption only, no accents. */
+function ConstellationFragment({ style }: { style?: object }) {
   return (
-    <View style={styles.court}>
-      <View style={styles.courtOuter} />
-      <View style={styles.courtNet} />
-      <View style={[styles.courtLine, styles.courtLineTop]} />
-      <View style={[styles.courtLine, styles.courtLineBottom]} />
-      <View style={[styles.courtLine, styles.courtLineLeft]} />
-      <View style={[styles.courtLine, styles.courtLineRight]} />
-      <View style={styles.courtDot} />
+    <View pointerEvents="none" style={[styles.fragment, style]}>
+      <BroccoliMark
+        tone="light"
+        compact
+        size={0.85}
+        animated={false}
+        accents={[]}
+      />
     </View>
   );
 }
 
-function HeroGame() {
+/** Quiet next-fixture bar — editorial index entry, not a Play poster. */
+function NextFixture({ game, onPress }: { game: MockGame; onPress: () => void }) {
+  const state = userStateLabel(game);
+  const isSignal = state === "YOU'RE IN" || state === 'OPEN';
+
   return (
-    <MotionPressable haptic="medium" onPress={() => {}} style={({ pressed }) => [styles.hero, pressed && styles.pressed]}>
-      <View style={styles.heroHead}>
-        <View style={styles.heroDate}>
-          <Text variant="meta" muted>SEP</Text>
-          <Text style={styles.heroDay}>20</Text>
-          <Text variant="meta" muted>SUN</Text>
-        </View>
-        <View style={styles.heroMeta}>
-          <View style={styles.liveLine}><Marker active /><Text variant="meta" style={styles.signalText}>NEXT GAME</Text></View>
-          <Text variant="meta" muted>04—06 PM</Text>
+    <MotionPressable
+      haptic="medium"
+      onPress={onPress}
+      accessibilityRole="button"
+      accessibilityLabel={`Open next fixture at ${game.venue}, ${state}`}
+      accessibilityHint={`${playersLabel(game)} players`}
+      style={({ pressed }) => [styles.nextFixture, pressed && styles.pressed]}
+    >
+      <ConstellationFragment style={styles.nextFragment} />
+
+      <View style={styles.nextHead}>
+        <Text variant="meta" muted>Next · {game.dateLabel}</Text>
+        <View style={styles.liveLine}>
+          <Marker active={isSignal} />
+          <StateFadeText
+            value={state}
+            variant="meta"
+            style={isSignal ? styles.signalText : styles.mutedText}
+          />
         </View>
       </View>
 
-      <CourtGraphic />
-
-      <View style={styles.heroCopy}>
-        <View style={styles.heroVenue}>
-          <Text variant="headline" style={styles.heroPlace}>VICTORIA PARK</Text>
-          <Text variant="body" muted style={styles.heroDetail}>Court 03 · Intermediate doubles</Text>
+      <View style={styles.nextMain}>
+        <View style={styles.nextTimeBlock}>
+          <Text variant="time" style={styles.nextTime}>{game.timeRange}</Text>
+          <Text variant="label" style={styles.nextPm}>{game.period}</Text>
         </View>
-        <Arrow />
+        <View style={styles.nextCopy}>
+          <Text variant="headline" style={styles.nextPlace}>{game.venue}</Text>
+          <Text variant="body" muted style={styles.nextDetail}>{game.detail}</Text>
+        </View>
+        <Text style={styles.nextArrow}>↗</Text>
       </View>
 
-      <View style={styles.heroFooter}>
-        <View style={styles.heroStat}><Text variant="meta" muted>PLAYERS</Text><Text variant="label">03 / 04</Text></View>
-        <View style={styles.heroStat}><Text variant="meta" muted>ENTRY</Text><Text variant="label">HK$25</Text></View>
-        <View style={styles.inButton}><Text variant="label" style={styles.inButtonText}>YOU'RE IN</Text></View>
+      <View style={styles.nextFooter}>
+        <View style={styles.nextStat}>
+          <Text variant="meta" muted>Players</Text>
+          <StateFadeText value={playersLabel(game)} variant="label" />
+        </View>
+        <View style={styles.nextStat}>
+          <Text variant="meta" muted>Entry</Text>
+          <Text variant="label">{priceLabel(game)}</Text>
+        </View>
+        <View style={styles.inButton}>
+          <StateFadeText value={state} variant="label" style={styles.inButtonText} />
+        </View>
       </View>
     </MotionPressable>
   );
 }
 
-function GameRow({ index, date, place, detail, players, status, price, past = false }: {
-  index: number; date: string; place: string; detail: string; players: string; status: string; price?: string; past?: boolean;
+function GameRow({ index, game, onPress }: {
+  index: number; game: MockGame; onPress: () => void;
 }) {
+  const status = userStateLabel(game);
+  const isSignal = status === "YOU'RE IN" || status === 'OPEN';
+
   return (
-    <MotionPressable haptic="selection" onPress={() => {}} style={({ pressed }) => [styles.gameRow, past && styles.gameRowPast, pressed && styles.pressed]}>
-      <View style={styles.rowNumber}><Text variant="meta" muted={past}>0{index + 1}</Text></View>
+    <MotionPressable
+      haptic="selection"
+      onPress={onPress}
+      accessibilityRole="button"
+      accessibilityLabel={`Open ${game.venue} game, ${status}`}
+      accessibilityHint={`${playersLabel(game)} players`}
+      style={({ pressed }) => [styles.gameRow, pressed && styles.pressed]}
+    >
+      <View style={styles.rowNumber}>
+        <Text variant="meta" muted>{pad2(index + 1)}</Text>
+      </View>
       <View style={styles.rowBody}>
         <View style={styles.rowTop}>
-          <Text variant="meta" muted={past}>{date}</Text>
-          <View style={styles.status}><Marker active={!past} /><Text variant="meta" style={past ? styles.mutedText : styles.openText}>{status}</Text></View>
+          <Text variant="meta" muted>{game.listDate}</Text>
+          <View style={styles.status}>
+            <Marker active={isSignal} />
+            <StateFadeText
+              value={status}
+              variant="meta"
+              style={isSignal ? styles.openText : styles.mutedText}
+            />
+          </View>
         </View>
         <View style={styles.rowMain}>
           <View style={styles.rowCopy}>
-            <Text variant="title">{place}</Text>
-            <Text variant="body" muted style={styles.detail}>{detail}</Text>
+            <Text variant="title">{game.venue}</Text>
+            <Text variant="body" muted style={styles.detail}>{game.detail}</Text>
           </View>
           <View style={styles.rowRight}>
-            <Text variant="meta" muted>{players}</Text>
-            {price ? <Text variant="label" style={styles.price}>{price}</Text> : <Arrow />}
+            <StateFadeText value={playersLabel(game)} variant="meta" muted />
+            <Text variant="label" style={styles.price}>{priceLabel(game)}</Text>
           </View>
         </View>
       </View>
-    </MotionPressable>
-  );
-}
-
-function FilterButton({ label, active, onPress }: { label: string; active: boolean; onPress: () => void }) {
-  return (
-    <MotionPressable haptic="selection" onPress={onPress} style={({ pressed }) => [styles.filter, active && styles.filterActive, pressed && styles.pressed]}>
-      <Text variant="label" style={active ? styles.filterActiveText : styles.filterText}>{label}</Text>
     </MotionPressable>
   );
 }
 
 export default function GamesScreen() {
-  const [filter, setFilter] = useState<Filter>('upcoming');
+  const router = useRouter();
+  const insets = useSafeAreaInsets();
+  const {
+    featuredGame: featured,
+    upcomingGames: upcoming,
+  } = useGamesStore();
+  const openCount = upcoming.length;
+  const liveCount = openCount + (featured.status === 'OPEN' ? 1 : 0);
+  const empty = upcoming.length === 0;
 
   return (
-    <View style={styles.screen}>
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.content}>
+    <View style={[styles.screen, { paddingTop: insets.top }]}>
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={[styles.content, { paddingBottom: 110 + insets.bottom }]}
+      >
         <View style={styles.header}>
           <View>
-            <Text variant="label">BROCCOLI CLUB</Text>
-            <Text variant="meta" muted style={styles.headerSub}>GAMES / HONG KONG</Text>
+            <Text variant="label">Broccoli Club</Text>
+            <Text variant="meta" muted style={styles.headerSub}>Games / Hong Kong</Text>
           </View>
-          <Text variant="meta" muted>02</Text>
+          <Text variant="meta" muted>{pad2(openCount)}</Text>
         </View>
 
-        <View style={styles.titleRow}>
-          <Text variant="display" style={styles.pageTitle}>GAMES</Text>
-          <Text variant="meta" style={styles.titleCount}>03 LIVE</Text>
+        <Entrance>
+          <View style={styles.titleRow}>
+            <Text variant="display" style={styles.pageTitle}>Games</Text>
+            <View style={styles.titleMeta}>
+              <Text variant="meta" muted>{pad2(liveCount)} live</Text>
+              <Marker active />
+            </View>
+          </View>
+        </Entrance>
+
+        <View style={styles.editorialHead}>
+          <Text variant="meta" muted>Field index</Text>
+          <Text variant="meta" muted>{pad2(openCount)} upcoming</Text>
         </View>
 
-        <HeroGame />
-
-        <View style={styles.filters}>
-          <FilterButton label="UPCOMING" active={filter === 'upcoming'} onPress={() => setFilter('upcoming')} />
-          <FilterButton label="PAST" active={filter === 'past'} onPress={() => setFilter('past')} />
-        </View>
+        <Entrance delay={60}>
+          <NextFixture
+            game={featured}
+            onPress={() => router.push({ pathname: '/game/[id]', params: { id: featured.id } })}
+          />
+        </Entrance>
 
         <View style={styles.sectionHead}>
           <View>
-            <Text variant="meta" muted>THE FIELD</Text>
-            <Text variant="headline" style={styles.sectionTitle}>{filter === 'upcoming' ? 'Open games' : 'Played games'}</Text>
+            <Text variant="meta" muted>The field</Text>
+            <Text variant="headline" style={styles.sectionTitle}>Open games</Text>
           </View>
-          <Text variant="meta" muted>{filter === 'upcoming' ? '02 OPEN' : '02 LOGGED'}</Text>
+          <Text variant="meta" muted>{pad2(openCount)} open</Text>
         </View>
 
-        {filter === 'upcoming' ? <>
-          <GameRow index={0} date="SUN · 21 SEP" place="Kowloon Cricket Club" detail="Court 02 · Beginner / intermediate" players="02 / 04" status="OPEN" price="HK$25" />
-          <GameRow index={1} date="SUN · 21 SEP" place="Happy Valley" detail="Court 01 · Intermediate singles" players="01 / 02" status="OPEN" price="HK$30" />
-        </> : <>
-          <GameRow index={0} date="SAT · 13 SEP" place="Happy Valley" detail="Court 01 · Intermediate singles" players="02 / 02" status="PLAYED" past />
-          <GameRow index={1} date="SUN · 07 SEP" place="Victoria Park" detail="Court 04 · Intermediate doubles" players="04 / 04" status="PLAYED" past />
-        </>}
-
-        {filter === 'upcoming' && (
-          <MotionPressable haptic="medium" onPress={() => {}} style={({ pressed }) => [styles.find, pressed && styles.pressed]}>
-            <View><Text variant="meta" muted>HONG KONG / NOW</Text><Text variant="headline" style={styles.findTitle}>Find another game</Text></View>
-            <Arrow />
-          </MotionPressable>
+        {empty ? (
+          <View style={styles.emptyList}>
+            <Text variant="meta" muted>NOTHING OPEN</Text>
+            <Text variant="body" muted style={styles.emptyCopy}>
+              No upcoming games on the field.
+            </Text>
+            <View style={styles.emptyRoutes}>
+              <MotionPressable
+                haptic="selection"
+                onPress={() => router.push('/')}
+                accessibilityRole="button"
+                accessibilityLabel="Open Play"
+                style={({ pressed }) => [styles.emptyLink, pressed && styles.pressed]}
+              >
+                <Text variant="label">← Play</Text>
+              </MotionPressable>
+              <MotionPressable
+                haptic="selection"
+                onPress={() => router.push('/game/new')}
+                accessibilityRole="button"
+                accessibilityLabel="Create a game"
+                style={({ pressed }) => [styles.emptyLink, pressed && styles.pressed]}
+              >
+                <Text variant="label">Create ↗</Text>
+              </MotionPressable>
+            </View>
+          </View>
+        ) : (
+          upcoming.map((game, index) => (
+            <GameRow
+              key={game.id}
+              index={index}
+              game={game}
+              onPress={() => router.push({ pathname: '/game/[id]', params: { id: game.id } })}
+            />
+          ))
         )}
 
-        <View style={styles.footer}><Text variant="meta" muted>BROCCOLI CLUB / NEVER JUST A SIDE</Text></View>
+        {!empty ? (
+          <MotionPressable
+            haptic="selection"
+            onPress={() => {
+              // Already on /games — find-another destination is this list (no search engine).
+            }}
+            accessibilityRole="button"
+            accessibilityLabel="Find another game"
+            style={({ pressed }) => [styles.find, pressed && styles.pressed]}
+          >
+            <View style={styles.findCopy}>
+              <Text variant="meta" muted>Hong Kong / now</Text>
+              <Text variant="label" style={styles.findTitle}>FIND ANOTHER GAME</Text>
+            </View>
+            <Text variant="meta" muted>↗</Text>
+          </MotionPressable>
+        ) : null}
+
+        <View style={styles.footer}>
+          <Text variant="meta" muted>Broccoli Club / Never just a side</Text>
+        </View>
       </ScrollView>
     </View>
   );
@@ -157,45 +265,95 @@ const styles = StyleSheet.create({
   content: { paddingHorizontal: spacing.page, paddingTop: spacing.lg, paddingBottom: 110 },
   header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' },
   headerSub: { marginTop: 5 },
-  titleRow: { marginTop: 22, marginBottom: 18, flexDirection: 'row', alignItems: 'flex-end', justifyContent: 'space-between' },
-  pageTitle: { fontSize: 62, lineHeight: 58 },
-  titleCount: { color: colors.signal, marginBottom: 5 },
-  hero: { minHeight: 430, backgroundColor: colors.ink, padding: 16, overflow: 'hidden' },
-  heroHead: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' },
-  heroDate: { flexDirection: 'row', alignItems: 'baseline', gap: 7 },
-  heroDay: { color: colors.bone, fontSize: 72, lineHeight: 68, fontWeight: '800', letterSpacing: -4 },
-  heroMeta: { alignItems: 'flex-end', gap: 7, paddingTop: 3 },
+  titleRow: { marginTop: 22, marginBottom: 10, flexDirection: 'row', alignItems: 'flex-end', justifyContent: 'space-between' },
+  pageTitle: {},
+  titleMeta: { flexDirection: 'row', alignItems: 'center', gap: 7, marginBottom: 5 },
+  editorialHead: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingBottom: 12,
+    marginBottom: 14,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.concrete,
+  },
+  fragment: { position: 'absolute' },
+  nextFixture: {
+    backgroundColor: colors.white,
+    borderWidth: 1,
+    borderColor: colors.ink,
+    padding: 14,
+    overflow: 'hidden',
+    position: 'relative',
+  },
+  nextFragment: {
+    right: -28,
+    top: -22,
+    opacity: 0.14,
+    transform: [{ rotate: '8deg' }],
+  },
+  nextHead: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    zIndex: 2,
+  },
   liveLine: { flexDirection: 'row', alignItems: 'center', gap: 7 },
   signalText: { color: colors.signal },
   marker: { width: 6, height: 6, borderRadius: 3, backgroundColor: colors.muted },
   markerActive: { backgroundColor: colors.signal },
-  court: { height: 170, marginTop: 8, position: 'relative', borderWidth: 1, borderColor: 'rgba(240,242,236,0.48)', backgroundColor: 'rgba(240,242,236,0.035)' },
-  courtOuter: { position: 'absolute', left: 13, right: 13, top: 13, bottom: 13, borderWidth: 1, borderColor: 'rgba(240,242,236,0.72)' },
-  courtNet: { position: 'absolute', top: 13, bottom: 13, left: '50%', width: 1, backgroundColor: 'rgba(240,242,236,0.72)' },
-  courtLine: { position: 'absolute', backgroundColor: 'rgba(240,242,236,0.5)' },
-  courtLineTop: { left: '25%', right: '25%', top: '50%', height: 1 },
-  courtLineBottom: { left: '25%', right: '25%', bottom: '50%', height: 1 },
-  courtLineLeft: { top: '30%', bottom: '30%', left: '25%', width: 1 },
-  courtLineRight: { top: '30%', bottom: '30%', right: '25%', width: 1 },
-  courtDot: { position: 'absolute', width: 11, height: 11, borderRadius: 6, backgroundColor: colors.signal, left: '50%', top: '50%', marginLeft: -5.5, marginTop: -5.5 },
-  heroCopy: { marginTop: 15, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-end' },
-  heroVenue: { flex: 1, paddingRight: 12 },
-  heroPlace: { color: colors.bone },
-  heroDetail: { color: '#B9BCB4', marginTop: 3 },
-  heroFooter: { minHeight: 58, marginTop: 16, paddingTop: 12, borderTopWidth: 1, borderTopColor: 'rgba(240,242,236,0.24)', flexDirection: 'row', alignItems: 'center', gap: 23 },
-  heroStat: { gap: 3 },
-  inButton: { marginLeft: 'auto', minHeight: 38, paddingHorizontal: 13, backgroundColor: colors.signal, justifyContent: 'center' },
-  inButtonText: { color: colors.bone },
-  arrow: { fontSize: 20, lineHeight: 20, color: colors.ink },
-  filters: { marginTop: 25, borderBottomWidth: 1, borderBottomColor: colors.concrete, flexDirection: 'row' },
-  filter: { minHeight: 43, marginRight: 25, justifyContent: 'center' },
-  filterActive: { borderBottomWidth: 2, borderBottomColor: colors.ink },
-  filterText: { color: colors.muted },
-  filterActiveText: { color: colors.ink },
+  nextMain: {
+    marginTop: 14,
+    flexDirection: 'row',
+    alignItems: 'flex-end',
+    zIndex: 2,
+  },
+  nextTimeBlock: {
+    marginRight: 12,
+  },
+  /** TIME role + controlled size modifier for index entry */
+  nextTime: {
+    color: colors.ink,
+    fontSize: 34,
+    lineHeight: 34,
+    letterSpacing: -1.2,
+  },
+  nextPm: { color: colors.ink, marginTop: 2 },
+  nextCopy: { flex: 1, paddingRight: 10 },
+  nextPlace: { color: colors.ink },
+  nextDetail: { marginTop: 2 },
+  nextArrow: {
+    fontSize: 18,
+    lineHeight: 20,
+    color: colors.ink,
+    marginBottom: 2,
+    fontFamily: typography.label.fontFamily,
+  },
+  nextFooter: {
+    minHeight: 48,
+    marginTop: 14,
+    paddingTop: 12,
+    borderTopWidth: 1,
+    borderTopColor: colors.concrete,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 20,
+    zIndex: 2,
+  },
+  nextStat: { gap: 2 },
+  inButton: {
+    marginLeft: 'auto',
+    minHeight: 44,
+    paddingHorizontal: 12,
+    backgroundColor: colors.bone,
+    borderWidth: 1,
+    borderColor: colors.ink,
+    justifyContent: 'center',
+  },
+  inButtonText: { color: colors.ink },
   sectionHead: { marginTop: 28, paddingBottom: 11, borderBottomWidth: 1, borderBottomColor: colors.concrete, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-end' },
-  sectionTitle: { marginTop: 3, fontSize: 30, lineHeight: 30 },
+  sectionTitle: { marginTop: 3 },
   gameRow: { minHeight: 118, paddingVertical: 16, borderBottomWidth: 1, borderBottomColor: colors.concrete, flexDirection: 'row' },
-  gameRowPast: { opacity: 0.55 },
   rowNumber: { width: 29, paddingTop: 2 },
   rowBody: { flex: 1, paddingLeft: 10 },
   rowTop: { flexDirection: 'row', justifyContent: 'space-between' },
@@ -206,9 +364,29 @@ const styles = StyleSheet.create({
   rowCopy: { flex: 1, paddingRight: 12 },
   detail: { marginTop: 2 },
   rowRight: { alignItems: 'flex-end', gap: 5 },
-  price: { color: colors.signal },
-  find: { minHeight: 94, marginTop: 25, paddingVertical: 17, borderTopWidth: 2, borderTopColor: colors.ink, borderBottomWidth: 1, borderBottomColor: colors.concrete, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  findTitle: { marginTop: 3, fontSize: 25, lineHeight: 27 },
+  price: { color: colors.ink },
+  find: {
+    marginTop: 28,
+    paddingTop: 16,
+    paddingBottom: 14,
+    borderTopWidth: 1,
+    borderTopColor: colors.concrete,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  findCopy: { gap: 6 },
+  findTitle: { color: colors.ink },
   footer: { alignItems: 'center', marginTop: 34 },
+  emptyList: {
+    minHeight: 120,
+    paddingVertical: 22,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.concrete,
+    gap: 10,
+  },
+  emptyCopy: { maxWidth: 280 },
+  emptyRoutes: { flexDirection: 'row', gap: 24, marginTop: 8 },
+  emptyLink: { minHeight: 40, justifyContent: 'center' },
   pressed: { opacity: 0.72 },
 });

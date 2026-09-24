@@ -6,15 +6,7 @@ import * as SplashScreen from 'expo-splash-screen';
 import { useEffect } from 'react';
 
 import {
-  BarlowCondensed_700Bold,
-  BarlowCondensed_800ExtraBold,
-  BarlowCondensed_900Black,
-} from '@expo-google-fonts/barlow-condensed';
-
-import {
   IBMPlexSans_400Regular,
-  IBMPlexSans_500Medium,
-  IBMPlexSans_600SemiBold,
   IBMPlexSans_700Bold,
 } from '@expo-google-fonts/ibm-plex-sans';
 
@@ -23,18 +15,15 @@ import {
   IBMPlexMono_600SemiBold,
 } from '@expo-google-fonts/ibm-plex-mono';
 
+import { GamesStoreProvider } from '@/context/GamesStore';
+
 export { ErrorBoundary } from 'expo-router';
 
 SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
   const [loaded, error] = useFonts({
-    BarlowCondensed_700Bold,
-    BarlowCondensed_800ExtraBold,
-    BarlowCondensed_900Black,
     IBMPlexSans_400Regular,
-    IBMPlexSans_500Medium,
-    IBMPlexSans_600SemiBold,
     IBMPlexSans_700Bold,
     IBMPlexMono_400Regular,
     IBMPlexMono_600SemiBold,
@@ -51,15 +40,29 @@ export default function RootLayout() {
   }
 
   return (
-    <Stack>
-      <Stack.Screen
-        name="(tabs)"
-        options={{ headerShown: false }}
-      />
-      <Stack.Screen
-        name="mark-lab"
-        options={{ headerShown: false }}
-      />
-    </Stack>
+    <GamesStoreProvider>
+      <Stack>
+        <Stack.Screen
+          name="(tabs)"
+          options={{ headerShown: false }}
+        />
+        <Stack.Screen
+          name="game/[id]"
+          options={{ headerShown: false }}
+        />
+        <Stack.Screen
+          name="game/new"
+          options={{ headerShown: false }}
+        />
+        <Stack.Screen
+          name="person/[id]"
+          options={{ headerShown: false }}
+        />
+        <Stack.Screen
+          name="mark-lab"
+          options={{ headerShown: false }}
+        />
+      </Stack>
+    </GamesStoreProvider>
   );
 }
