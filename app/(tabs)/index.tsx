@@ -164,7 +164,7 @@ export default function PlayScreen() {
             <View style={styles.pulseRule} />
             <View style={styles.pulseItem}>
               <Text variant="title" style={styles.pulseNumber}>01</Text>
-              <Text variant="meta" muted>Tonight</Text>
+              <Text variant="meta" muted>Weekend</Text>
             </View>
           </View>
         </Entrance>

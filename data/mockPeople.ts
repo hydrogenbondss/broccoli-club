@@ -103,10 +103,12 @@ function sortGamesRecentFirst(games: MockGame[]): MockGame[] {
   });
 }
 
-/** Games this person attended (attendance map ∩ store games). */
+/** Games this person played (PLAYED only — attendance map ∩ store games). */
 export function gamesForPerson(personId: string, games: MockGame[]): MockGame[] {
   return sortGamesRecentFirst(
-    games.filter((g) => attendeeIdsForGame(g.id, g).includes(personId)),
+    games.filter(
+      (g) => g.status === 'PLAYED' && attendeeIdsForGame(g.id, g).includes(personId),
+    ),
   );
 }
 
@@ -126,7 +128,7 @@ export function placesPlayedCount(personId: string, games: MockGame[]): number {
   return placesForPerson(personId, games).length;
 }
 
-/** Shared fixtures between two people. */
+/** Shared PLAYED fixtures between two people (history only). */
 export function sharedGames(
   personA: string,
   personB: string,
@@ -134,6 +136,7 @@ export function sharedGames(
 ): MockGame[] {
   return sortGamesRecentFirst(
     games.filter((g) => {
+      if (g.status !== 'PLAYED') return false;
       const ids = attendeeIdsForGame(g.id, g);
       return ids.includes(personA) && ids.includes(personB);
     }),
@@ -149,7 +152,7 @@ export function lastSharedGame(
 }
 
 /**
- * People the current user has shared a court with, ordered by
+ * People the current user has shared a court with (PLAYED only), ordered by
  * shared-game count (desc), then name. Excludes self.
  */
 export function peoplePlayedWith(
@@ -159,6 +162,7 @@ export function peoplePlayedWith(
   const counts = new Map<string, number>();
 
   for (const g of games) {
+    if (g.status !== 'PLAYED') continue;
     const ids = attendeeIdsForGame(g.id, g);
     if (!ids.includes(userId)) continue;
     for (const id of ids) {

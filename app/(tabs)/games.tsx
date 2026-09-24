@@ -170,8 +170,7 @@ export default function GamesScreen() {
           <View style={styles.titleRow}>
             <Text variant="display" style={styles.pageTitle}>Games</Text>
             <View style={styles.titleMeta}>
-              <Text variant="meta" muted>{pad2(liveCount)} live</Text>
-              <Marker active />
+              <Text variant="meta" muted>{pad2(liveCount)} upcoming</Text>
             </View>
           </View>
         </Entrance>
@@ -233,24 +232,6 @@ export default function GamesScreen() {
             />
           ))
         )}
-
-        {!empty ? (
-          <MotionPressable
-            haptic="selection"
-            onPress={() => {
-              // Already on /games — find-another destination is this list (no search engine).
-            }}
-            accessibilityRole="button"
-            accessibilityLabel="Find another game"
-            style={({ pressed }) => [styles.find, pressed && styles.pressed]}
-          >
-            <View style={styles.findCopy}>
-              <Text variant="meta" muted>Hong Kong / now</Text>
-              <Text variant="label" style={styles.findTitle}>FIND ANOTHER GAME</Text>
-            </View>
-            <Text variant="meta" muted>↗</Text>
-          </MotionPressable>
-        ) : null}
 
         <View style={styles.footer}>
           <Text variant="meta" muted>Broccoli Club / Never just a side</Text>
@@ -365,18 +346,6 @@ const styles = StyleSheet.create({
   detail: { marginTop: 2 },
   rowRight: { alignItems: 'flex-end', gap: 5 },
   price: { color: colors.ink },
-  find: {
-    marginTop: 28,
-    paddingTop: 16,
-    paddingBottom: 14,
-    borderTopWidth: 1,
-    borderTopColor: colors.concrete,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  },
-  findCopy: { gap: 6 },
-  findTitle: { color: colors.ink },
   footer: { alignItems: 'center', marginTop: 34 },
   emptyList: {
     minHeight: 120,

@@ -177,6 +177,11 @@ function isValidHhmm(value: string): boolean {
   return Number.isInteger(h) && Number.isInteger(m) && h >= 0 && h <= 23 && m >= 0 && m <= 59;
 }
 
+function hhmmToMinutes(value: string): number {
+  const [hRaw, mRaw] = value.trim().split(':');
+  return Number(hRaw) * 60 + Number(mRaw);
+}
+
 export default function CreateGameScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
@@ -202,6 +207,16 @@ export default function CreateGameScreen() {
 
     if (!next.endTime && !isValidHhmm(form.endTime)) {
       next.endTime = 'Use HH:MM';
+    }
+
+    if (
+      !next.startTime &&
+      !next.endTime &&
+      isValidHhmm(form.startTime) &&
+      isValidHhmm(form.endTime) &&
+      hhmmToMinutes(form.endTime) <= hhmmToMinutes(form.startTime)
+    ) {
+      next.endTime = 'Must be after start';
     }
 
     if (!next.maxPlayers) {
@@ -329,7 +344,6 @@ export default function CreateGameScreen() {
               accessibilityRole="button"
               accessibilityLabel="Create game"
               accessibilityHint={attempted && !isValid ? 'Form has invalid fields' : 'Creates the game and opens it'}
-              accessibilityState={{ disabled: attempted && !isValid }}
               style={({ pressed }) => [
                 styles.cta,
                 pressed && styles.pressed,

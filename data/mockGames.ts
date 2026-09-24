@@ -212,6 +212,15 @@ function hour12FromHHMM(hhmm: string): number {
   return mod === 0 ? 12 : mod;
 }
 
+/** Editorial 12h clock fragment — keeps minutes when non-zero (10:30 stays 10:30). */
+function timeLabelFromHHMM(hhmm: string): string {
+  const [hRaw, mRaw] = hhmm.trim().split(':');
+  const hour = hour12FromHHMM(hhmm);
+  const minutes = Number(mRaw ?? 0);
+  if (!Number.isInteger(minutes) || minutes === 0) return String(hour);
+  return `${hour}:${String(minutes).padStart(2, '0')}`;
+}
+
 function periodFromHHMM(hhmm: string): 'AM' | 'PM' {
   const h = Number(hhmm.split(':')[0] ?? 0);
   return h >= 12 ? 'PM' : 'AM';
@@ -228,9 +237,9 @@ export function buildGameFromCreate(input: CreateGameInput): MockGame {
   const dateShort = `${pad2(dt.getDate())} ${MONTHS[dt.getMonth()] ?? 'JAN'}`;
   const dateLabel = `${day} ${dateShort}`;
   const listDate = `${day} · ${dateShort}`;
-  const startH = hour12FromHHMM(input.startTime);
-  const endH = hour12FromHHMM(input.endTime);
-  const timeRange = `${startH}—${endH}`;
+  const startLabel = timeLabelFromHHMM(input.startTime);
+  const endLabel = timeLabelFromHHMM(input.endTime);
+  const timeRange = `${startLabel}—${endLabel}`;
   const period = periodFromHHMM(input.startTime);
   const formatLevel = `${input.level.trim()} ${input.format.trim()}`.replace(/\s+/g, ' ').trim();
   const court = input.court.trim();
